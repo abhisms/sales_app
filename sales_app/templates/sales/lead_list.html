@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leads List</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        table {
+            width: 80%;
+            margin: auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        select {
+            padding: 5px;
+            font-size: 14px;
+        }
+        .button-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        /* Styling for the buttons */
+        .button-container a {
+            text-decoration: none;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            margin-left: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        /* Button hover effect */
+        .button-container a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="button-container">
+        <a href="http://127.0.0.1:8000/sales/opportunities/">View Opportunities</a>
+        <a href="http://127.0.0.1:8000/sales/lead-form/">Submit Lead</a>
+    </div>
+
+    <h2>Leads List</h2>
+
+    <table id="leadTable">
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Company</th>
+            <th>Location</th>
+            <th>Status</th>
+        </tr>
+        {% for lead in leads %}
+        <tr id="leadRow-{{ lead.id }}">
+            <td>{{ lead.name }}</td>
+            <td>{{ lead.email }}</td>
+            <td>{{ lead.phone }}</td>
+            <td>{{ lead.company }}</td>
+            <td>{{ lead.location }}</td>
+            <td>
+                <select class="status-dropdown" data-lead-id="{{ lead.id }}">
+                    <option value="new" {% if lead.status == "new" %}selected{% endif %}>New</option>
+                    <option value="in_progress" {% if lead.status == "in_progress" %}selected{% endif %}>In Progress</option>
+                    <option value="converted" {% if lead.status == "converted" %}selected{% endif %}>Converted</option>
+                </select>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="{% url 'admin_home' %}" class="btn btn-secondary">Back to Dashboard</a>
+    <script>
+        $(document).ready(function() {
+            $(".status-dropdown").change(function() {
+                var leadId = $(this).data("lead-id");
+                var newStatus = $(this).val();
+                var row = $("#leadRow-" + leadId);
+
+                $.ajax({
+                    url: "{% url 'update_lead_status' %}",
+                    type: "POST",
+                    data: {
+                        "lead_id": leadId,
+                        "new_status": newStatus,
+                        "csrfmiddlewaretoken": "{{ csrf_token }}"
+                    },
+                    success: function(response) {
+                        alert("Status updated successfully!");
+
+                    },
+                    error: function() {
+                        alert("Error updating status.");
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>

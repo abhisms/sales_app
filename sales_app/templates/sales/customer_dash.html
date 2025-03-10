@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    {% load mathfilters %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard</title>
+    <link rel="stylesheet" href="{% static 'sales/style.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<style>
+.container {
+    overflow-y: auto;
+    max-height: 91vh;
+}
+
+
+</style>
+
+
+<body>
+    
+
+    <!-- Dashboard Container -->
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Welcome, {{ customer.name }}!</h2>
+            <a href="{% url 'customer_logout' %}" class="btn btn-danger">Logout</a>
+        </div>
+        <p style="color: black;">Glad to have you here.</p>
+
+       
+<!-- View Quotations Section -->
+<div class="card mt-4">
+    <div class="card-header bg-primary text-white">
+        <h4>Quotations</h4>
+    </div>
+    <div class="card-body">
+        {% if quotations %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Quotation ID</th>
+                        <th>Product Name</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Expiry Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for quotation in quotations %}
+                    <tr>
+                        <td>{{ quotation.id }}</td>
+                        <td>{{ quotation.product_name }}</td>
+                        <td>₹{{ quotation.amount }}</td>
+                        <td>{{ quotation.quantity }}</td>
+                        <td>₹{% widthratio quotation.amount 1 quotation.quantity %}</td>  {# Total = amount * quantity #}
+                        <td>{{ quotation.expiry_date }}</td>
+                        <td>{{ quotation.get_status_display }}</td>
+                        <td>
+                            {% if quotation.status == 'cancelled' or quotation.status == 'confirmed' %}
+                                <button class="btn btn-secondary btn-sm" disabled>Edit and Confirm</button>
+                                <button class="btn btn-danger btn-sm" disabled>Cancel</button>
+                            {% else %}
+                                <!-- Button to trigger modal -->
+                                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#editQuotationModal{{ quotation.id }}">
+                                    Edit and Confirm
+                                </button>
+                                <a href="{% url 'cancel_quotation' quotation.id %}" class="btn btn-danger btn-sm">Cancel</a>
+                            {% endif %}
+                        </td>
+                        
+                    </tr>
+
+                    <!-- Edit & Confirm Modal -->
+                    <div class="modal fade" id="editQuotationModal{{ quotation.id }}" tabindex="-1" aria-labelledby="editQuotationLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="editQuotationLabel">Edit & Confirm Quotation</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form method="POST" action="{% url 'update_quotation' quotation.id %}">
+                                        {% csrf_token %}
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Quotation ID</label>
+                                            <input type="text" class="form-control" value="{{ quotation.id }}" disabled>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Product Name</label>
+                                            <input type="text" class="form-control" value="{{ quotation.product_name }}" disabled>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Price</label>
+                                            <input type="text" class="form-control" value="{{ quotation.amount }}" disabled>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Quantity</label>
+                                            <input type="number" name="quantity" class="form-control" value="{{ quotation.quantity }}" required>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-success">Confirm & Update</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No quotations available.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- My order section -->
+
+<!-- Orders Table -->
+<div class="card mt-4">
+    <div class="card-header bg-success text-white">
+        <h4>My Orders</h4>
+    </div>
+    <div class="card-body">
+        {% if orders %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Quotation ID</th>
+                        <th>Product Name</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total Amount</th>
+                        <th>Order Date</th>
+                        <th>Order Status</th>
+                        <th>Payment Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        {% if order.quotation_id.status|lower == "confirmed" %}  {# Check quotation status #}
+                        <tr>
+                            <td>{{ order.order_id }}</td>
+                            <td>{{ order.quotation_id.id }}</td>
+                            <td>{{ order.quotation_id.product_name }}</td>
+                            <td>₹{{ order.quotation_id.amount }}</td>
+                            <td>{{ order.quotation_id.quantity }}</td>
+                            <td>₹{% widthratio order.quotation_id.amount 1 order.quotation_id.quantity %}</td> 
+                            <td>{{ order.order_date|date:"Y-m-d" }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if order.status == 'Pending' %} bg-warning 
+                                    {% elif order.status == 'In-process' %} bg-primary 
+                                    {% elif order.status == 'Shipped' %} bg-info 
+                                    {% elif order.status == 'Delivered' %} bg-success 
+                                    {% elif order.status == 'Cancelled' %} bg-danger 
+                                    {% else %} bg-secondary {% endif %}">
+                                    {{ order.status }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if order.payment_status == 'Pending' %}
+                                    <!-- Button to trigger Razorpay modal -->
+                                    <button class="btn btn-warning btn-sm pay-now-btn" 
+                                            data-order-id="{{ order.order_id }}" 
+                                            data-amount="{{ order.total_amount }}" 
+                                            data-razorpay-key="rzp_test_JFfuEOzEhk0RSb" 
+                                            data-currency="INR">
+                                        Make Payment
+                                    </button>
+                                {% else %}
+                                    <span class="text-success">Paid</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        {% else %}
+            <p>No orders yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+
+       <!-- Track Orders Section -->
+
+       <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h4>Track Orders</h4>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'success' %}success{% else %}danger{% endif %} 
+                alert-dismissible fade show custom-alert" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+            {% if orders %}
+            
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        {% if order.payment_status == 'Paid' %}  <!-- Show only if Paid -->
+                            <tr>
+                                <td>{{ order.order_id }}</td>  
+                                <td>
+                                    <button class="btn btn-info btn-sm toggle-status" type="button" data-order-id="{{ order.order_id }}">
+                                        ⬇️ View Status
+                                    </button>
+                                </td>
+                                
+                                
+                                <td>
+                                    <a href="{% url 'download_invoice' order.order_id %}" 
+                                    class="btn btn-secondary btn-sm {% if order.status != 'Delivered' %}disabled{% endif %}">
+                                    <i class="fa fa-file-invoice"></i> Download Invoice
+                                 </a>
+                                 <!-- {% if order.status == 'Delivered' %} -->
+                                 <form method="POST" action="{% url 'return_order' order.order_id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm" {% if order.status != 'Delivered' %}disabled{% endif %}>
+                                        <i class="fa fa-undo"></i> Return Order
+                                    </button>
+                                </form>
+                                <!-- {% endif %} -->
+                                </td>
+                            </tr>
+    
+                            <!-- Collapsible Order Tracking Row -->
+                            <tr class="order-details" id="orderDetails{{ order.order_id }}" style="display: none;">
+
+                                <td colspan="3">
+                                    <div class="progress-container">
+                                        {% if order.status == 'Cancelled' %}
+                                            <span class="cancelled-text text-danger fw-bold">Cancelled</span>
+                                        {% else %}
+                                            <div class="progress-steps">
+                                                <div class="step {% if order.status in 'Pending,In-process,Shipped,Delivered' %}active{% endif %}">
+                                                    <img src="https://cdn-icons-png.flaticon.com/128/3502/3502692.png" alt="Order Placed">
+                                                    <span>Order Placed</span>
+                                                    {% if order.status in 'Pending,In-process,Shipped,Delivered' %} <span class="checkmark">✅</span> {% endif %}
+                                                </div>
+    
+                                                <div class="step {% if order.status in 'In-process,Shipped,Delivered' %}active{% endif %}">
+                                                    <img src="https://cdn-icons-png.flaticon.com/128/1048/1048957.png" alt="Processing">
+                                                    <span>Processing</span>
+                                                    {% if order.status in 'In-process,Shipped,Delivered' %} <span class="checkmark">✅</span> {% endif %}
+                                                </div>
+    
+                                                <div class="step {% if order.status in 'Shipped,Delivered' %}active{% endif %}">
+                                                    <img src="https://cdn-icons-png.flaticon.com/128/1086/1086883.png" alt="Shipped">
+                                                    <span>Shipped</span>
+                                                    {% if order.status in 'Shipped,Delivered' %} <span class="checkmark">✅</span> {% endif %}
+                                                </div>
+    
+                                                <div class="step {% if order.status == 'Delivered' %}active{% endif %}">
+                                                    <img src="https://cdn-icons-png.flaticon.com/128/1532/1532676.png" alt="Delivered">
+                                                    <span>Delivered</span>
+                                                    {% if order.status == 'Delivered' %} <span class="checkmark">✅</span> {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+    
+                        {% endif %}
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center">No paid orders found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+    
+            {% else %}
+                <p class="text-danger">No active paid orders available for tracking.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+       <!-- Returns & Refunds Section -->
+       <div class="card mt-4">
+        <div class="card-header bg-warning text-dark">
+            <h4>Returns & Refunds</h4>
+        </div>
+        <div class="card-body">
+            {% if returns %}
+            <p class="text-dark">  {{ returns|length }} return orders.</p>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Return Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in returns %}
+                    <tr>
+                        <td>{{ r.order.order_id }}</td>  <!-- Ensure accessing order_id correctly -->
+                        <td>{{ r.status }}</td>  <!-- Corrected from return_order.status -->
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-danger">⚠️ No return orders found.</p>
+        {% endif %}
+        
+        </div>
+    </div>
+    
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Razorpay script code -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".pay-now-btn").forEach(function (button) {
+            button.addEventListener("click", function () {
+                let orderId = this.getAttribute("data-order-id");
+                if (orderId) {
+                    window.location.href = `/initiate-payment/${orderId}/`;
+                } else {
+                    alert("Order ID not found.");
+                }
+            });
+        });
+    });
+</script>
+
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    const toggleButtons = document.querySelectorAll(".toggle-status");
+
+    toggleButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            const orderId = this.getAttribute("data-order-id");
+            const detailsRow = document.getElementById("orderDetails" + orderId);
+
+            // Hide all other open rows (Optional: Ensures only one expands at a time)
+            document.querySelectorAll(".order-details").forEach(row => {
+                if (row !== detailsRow) {
+                    row.style.display = "none";
+                    const btn = document.querySelector(`[data-order-id="${row.id.replace('orderDetails', '')}"]`);
+                    if (btn) btn.innerHTML = "⬇️ View Status";
+                }
+            });
+
+            // Toggle the visibility of the clicked row
+            if (detailsRow.style.display === "none" || !detailsRow.style.display) {
+                detailsRow.style.display = "table-row";
+                this.innerHTML = "⬆️ Hide Status";
+            } else {
+                detailsRow.style.display = "none";
+                this.innerHTML = "⬇️ View Status";
+            }
+        });
+    });
+});
+
+</script>
+<script>
+    // Automatically hide messages after 5 seconds
+    setTimeout(function () {
+        let alerts = document.querySelectorAll('.custom-alert');
+        alerts.forEach(alert => {
+            alert.style.transition = "opacity 0.5s ease-out";
+            alert.style.opacity = "0";
+            setTimeout(() => alert.remove(), 500);
+        });
+    }, 2000);
+</script>
+</body>
+</html>

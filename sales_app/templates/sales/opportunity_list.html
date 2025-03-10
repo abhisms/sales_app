@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Opportunities</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        table {
+            width: 80%;
+            margin: auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .button-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .button-container a {
+            text-decoration: none;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            margin-left: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .button-container a:hover {
+            background-color: #0056b3;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="button-container">
+        <a href="http://127.0.0.1:8000/sales/leads/">View Leads</a>
+        <a href="http://127.0.0.1:8000/sales/lead-form/">Submit Lead</a>
+    </div>
+
+    <h2>Opportunities</h2>
+
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Company</th>
+            <th>Location</th>
+            <th>Converted At</th>
+            <th>Actions</th>
+        </tr>
+        {% for opportunity in opportunities %}
+        <tr>
+            <td>{{ opportunity.name }}</td>
+            <td>{{ opportunity.email }}</td>
+            <td>{{ opportunity.phone }}</td>
+            <td>{{ opportunity.company }}</td>
+            <td>{{ opportunity.location }}</td>
+            <td>{{ opportunity.converted_at }}</td>
+            <td>
+                <form method="POST" action="{% url 'convert_opportunity' opportunity.id %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                        {% if opportunity.email in converted_customers %}disabled{% endif %}>
+                        {% if opportunity.email in converted_customers %}
+                            Converted
+                        {% else %}
+                            Convert to Customer
+                        {% endif %}
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table><br>
+    <a href="{% url 'admin_home' %}" class="btn btn-secondary">Back to Dashboard</a>
+</body>
+</html>

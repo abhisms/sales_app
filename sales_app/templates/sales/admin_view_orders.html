@@ -1,0 +1,49 @@
+<div class="card mt-4">
+    <div class="card-header bg-primary text-white">
+        <h4>Manage Orders</h4>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Total Amount</th>
+                    <th>Order Status</th>
+                    <th>Payment Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.order_id }}</td>
+                    <td>{{ order.customer.name }}</td>
+                    <td>{{ order.quotation_id.product_name }}</td>
+                    <td>₹{{ order.total_amount }}</td>
+                    <td>
+                        <form method="POST" action="{% url 'update_admin_status' order.order_id %}">
+                            {% csrf_token %}
+                            <select name="sales_status" class="form-select">
+                                <option value="confirmed" {% if order.status == "confirmed" %}selected{% endif %}>Confirmed</option>
+                                <option value="sent" {% if order.status == "sent" %}selected{% endif %}>Sent</option>
+                                <option value="delivered" {% if order.status == "delivered" %}selected{% endif %}>Delivered</option>
+                            </select>
+                    </td>
+                    <td>
+                        <select name="payment_status" class="form-select">
+                            <option value="Pending" {% if order.payment_status == "Pending" %}selected{% endif %}>Pending</option>
+                            <option value="Paid" {% if order.payment_status == "Paid" %}selected{% endif %}>Paid</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button type="submit" class="btn btn-success btn-sm">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

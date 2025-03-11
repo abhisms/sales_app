@@ -104,7 +104,7 @@ langchain-community==0.3.5
 langchain-core==0.3.15
 langchain-experimental==0.3.3
 langchain-huggingface==0.1.2
-langchain-openai==0.2.5
+langchain-openai
 langchain-text-splitters==0.3.2
 langchainhub==0.1.21
 langdetect==1.0.9
@@ -130,7 +130,7 @@ numpy==1.26.0
 oauthlib==3.2.2
 olefile==0.47
 onnxruntime==1.20.0
-openai==0.28.0
+openai
 opencv-python-headless==4.8.0.74
 opentelemetry-api==1.27.0
 opentelemetry-exporter-otlp-proto-common==1.27.0

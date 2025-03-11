@@ -1,3 +1,5 @@
+# sales_app
+
 """
 Django settings for sales_project project.
 
@@ -9,7 +11,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+import dj_database_url
 from pathlib import Path
 import os
 from django.contrib.messages import constants as messages
@@ -27,9 +29,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-!l6x2j9k=odhj^v&of$lm!#&4&ld6&jw3ol9v%5ymu!#)w##xs'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -48,6 +50,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Add this line
     'corsheaders.middleware.CorsMiddleware',  # Add this line at the top
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -85,16 +88,20 @@ WSGI_APPLICATION = 'sales_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'sm',  # Your database name
+#         'USER': 'postgres',     # Your PostgreSQL username
+#         'PASSWORD': '123',  # Your PostgreSQL password
+#         'HOST': 'localhost',    # Localhost since PostgreSQL is on your machine
+#         'PORT': '5432',         # Default PostgreSQL port
+#     }
+# }
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'sm',  # Your database name
-        'USER': 'postgres',     # Your PostgreSQL username
-        'PASSWORD': '123',  # Your PostgreSQL password
-        'HOST': 'localhost',    # Localhost since PostgreSQL is on your machine
-        'PORT': '5432',         # Default PostgreSQL port
-    }
+    'default': dj_database_url.config(default='postgresql://sales_db_fuyp_user:NZ1lgH9EqBdLm90yZLNhvV5js6l0es8I@dpg-cv7sm6dds78s73cps09g-a/sales_db_fuyp', conn_max_age=600)
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -134,6 +141,9 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'sales_app/static'),
 ]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

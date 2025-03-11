@@ -98,9 +98,15 @@ WSGI_APPLICATION = 'sales_project.wsgi.application'
 #         'PORT': '5432',         # Default PostgreSQL port
 #     }
 # }
+
+
 DATABASES = {
-    'default': dj_database_url.config(default='postgresql://sales_db_fuyp_user:NZ1lgH9EqBdLm90yZLNhvV5js6l0es8I@dpg-cv7sm6dds78s73cps09g-a/sales_db_fuyp', conn_max_age=600)
+    'default': dj_database_url.config(
+        default='postgresql://sales_db_fuyp_user:NZ1lgH9EqBdLm90yZLNhvV5js6l0es8I@dpg-cv7sm6dds78s73cps09g-a.singapore-postgres.render.com/sales_db_fuyp',
+        conn_max_age=600
+    )
 }
+
 
 
 # Password validation

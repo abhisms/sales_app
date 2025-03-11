@@ -155,7 +155,7 @@ class ReturnOrder(models.Model):
     ]
 
     order = models.ForeignKey('SalesOrder', on_delete=models.CASCADE, related_name='returns')
-    customer = models.ForeignKey('Customer', on_delete=models.CASCADE) 
+    customer = models.ForeignKey('Customer', on_delete=models.CASCADE,default=1) 
     return_reason = models.TextField()
     status = models.CharField(max_length=10, choices=RETURN_STATUS_CHOICES, default='Pending')
     created_at = models.DateTimeField(default=now)

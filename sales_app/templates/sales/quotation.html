@@ -78,6 +78,12 @@
             customerIdInput.value = selectedOption.dataset.customerId || "";
         }
     </script>
+<script>
+    // Get today's date in YYYY-MM-DD format
+    let today = new Date().toISOString().split("T")[0];
 
+    // Set the 'min' attribute to today's date
+    document.getElementById("expiry_date").setAttribute("min", today);
+</script>
 </body>
 </html>

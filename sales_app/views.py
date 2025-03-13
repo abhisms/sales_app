@@ -199,8 +199,12 @@ def create_quotation(request):
     if request.method == 'POST':
         form = QuotationForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Quotation submitted successfully!")  # Success message
+            quotation = form.save()  # Save the form and get the quotation instance
+
+            # Send email to the customer
+            send_quotation_email(quotation)
+
+            messages.success(request, "Quotation submitted successfully!")
             return redirect('admin_home')  # Redirect after submission
 
     else:
@@ -208,19 +212,54 @@ def create_quotation(request):
 
     return render(request, 'sales/quotation.html', {'form': form, 'customers': customers})
 
+
+def send_quotation_email(quotation):
+    """Sends an email to the customer when a quotation is created."""
+    customer_email = quotation.customer.email  # Assuming the Customer model has an 'email' field
+    subject = "New Quotation Created - Action Required"
+    message = f"""
+    Dear {quotation.customer.name},
+
+    A new quotation has been created for you.
+
+    **Quotation Details:**
+    - Product: {quotation.product_name}
+    - Quantity: {quotation.quantity}
+    - Price: {quotation.amount}
+    - Expiry Date: {quotation.expiry_date}
+
+    You can confirm or cancel the quotation by logging in to your customer portal.
+
+    🔗 [Login Now](http://127.0.0.1:8000/sales/login/)
+
+    Best regards,  
+    Your Sales Team
+    """
+
+    send_mail(
+        subject,
+        message,
+        "abhism574@gmail.com", 
+        [customer_email],
+        fail_silently=False,
+    )
+
+
 #update quotation in customer dashboard
 def update_quotation(request, quotation_id):
     quotation = get_object_or_404(Quotation, id=quotation_id)
 
+    # Check if the quotation is expired
+    if quotation.expiry_date and quotation.expiry_date < now().date():
+        # print(now().date())
+        quotation.status = "cancelled"
+        quotation.save()
+        return redirect("customer_dashboard")  # Redirect without confirming
+
     if request.method == "POST":
-        new_quantity = request.POST.get("quantity")
-
-        if new_quantity and int(new_quantity) > 0:
-            quotation.quantity = int(new_quantity)
-            # quotation.status = "sent"  # Auto-set status to confirmed
-            quotation.save()
-
-        return redirect("customer_dashboard")
+        # Update status to 'confirmed' when Yes is clicked, only if not expired
+        quotation.status = "confirmed"
+        quotation.save()
 
     return redirect("customer_dashboard")
 

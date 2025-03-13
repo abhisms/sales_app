@@ -62,58 +62,46 @@
                         <td>{{ quotation.expiry_date }}</td>
                         <td>{{ quotation.get_status_display }}</td>
                         <td>
-                            {% if quotation.status == 'cancelled' or quotation.status == 'confirmed' %}
-                                <button class="btn btn-secondary btn-sm" disabled>Edit and Confirm</button>
+                            {% if quotation.status == 'cancelled' %}
+                                <button class="btn btn-secondary btn-sm" disabled>Confirm</button>
                                 <button class="btn btn-danger btn-sm" disabled>Cancel</button>
+                            {% elif quotation.status == 'confirmed' %}
+                                <button class="btn btn-success btn-sm" disabled>Confirm</button>
+                                <a href="{% url 'cancel_quotation' quotation.id %}" class="btn btn-danger btn-sm">Cancel</a>
                             {% else %}
-                                <!-- Button to trigger modal -->
                                 <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#editQuotationModal{{ quotation.id }}">
-                                    Edit and Confirm
+                                    Confirm
                                 </button>
                                 <a href="{% url 'cancel_quotation' quotation.id %}" class="btn btn-danger btn-sm">Cancel</a>
                             {% endif %}
                         </td>
                         
+                        
                     </tr>
 
-                    <!-- Edit & Confirm Modal -->
-                    <div class="modal fade" id="editQuotationModal{{ quotation.id }}" tabindex="-1" aria-labelledby="editQuotationLabel" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="editQuotationLabel">Edit & Confirm Quotation</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <form method="POST" action="{% url 'update_quotation' quotation.id %}">
-                                        {% csrf_token %}
+                    <!-- Confirm Modal -->
+             <!-- Confirm Modal -->
+<div class="modal fade" id="editQuotationModal{{ quotation.id }}" tabindex="-1" aria-labelledby="confirmQuotationLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmQuotationLabel">Confirm Quotation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p>Are you sure you want to confirm this quotation?</p>
+            </div>
+            <div class="modal-footer">
+                <form method="POST" action="{% url 'update_quotation' quotation.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">Yes, Confirm</button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-                                        <div class="mb-3">
-                                            <label class="form-label">Quotation ID</label>
-                                            <input type="text" class="form-control" value="{{ quotation.id }}" disabled>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label class="form-label">Product Name</label>
-                                            <input type="text" class="form-control" value="{{ quotation.product_name }}" disabled>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label class="form-label">Price</label>
-                                            <input type="text" class="form-control" value="{{ quotation.amount }}" disabled>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label class="form-label">Quantity</label>
-                                            <input type="number" name="quantity" class="form-control" value="{{ quotation.quantity }}" required>
-                                        </div>
-
-                                        <button type="submit" class="btn btn-success">Confirm & Update</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     
                     {% endfor %}
                 </tbody>
